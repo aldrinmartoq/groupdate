@@ -96,6 +96,22 @@ module Groupdate
           else
             ["CONVERT_TIMEZONE(?, 'Etc/UTC', DATE_TRUNC(?, CONVERT_TIMEZONE(?, #{column}) - INTERVAL '#{day_start} second'))::timestamp + INTERVAL '#{day_start} second'", time_zone, field, time_zone]
           end
+        when "OracleEnhanced"
+          case field
+          when :day_of_week
+            ["TO_CHAR(FROM_TZ(CAST(#{column} AS TIMESTAMP), 'UTC') AT TIME ZONE ?, 'd')", time_zone]
+          when :hour_of_day
+            ["TO_CHAR(FROM_TZ(CAST(#{column} AS TIMESTAMP), 'UTC') AT TIME ZONE ?, 'HH24')", time_zone]
+          when :day_of_month
+            ["EXTRACT(DAY from FROM_TZ(CAST(#{column} AS TIMESTAMP), 'UTC') AT TIME ZONE ?)", time_zone]
+          when :month_of_year
+            ["EXTRACT(MONTH from FROM_TZ(CAST(#{column} AS TIMESTAMP), 'UTC') AT TIME ZONE ?)", time_zone]
+          when :month
+            ["TO_CHAR(TRUNC(FROM_TZ(CAST(#{column} AS TIMESTAMP), 'UTC') AT TIME ZONE ?, 'MONTH'), 'RRRR-MM-DD')", time_zone]
+          when :week
+          else
+            ["TO_CHAR(FROM_TZ(CAST(#{column} AS TIMESTAMP), 'UTC') AT TIME ZONE ?, 'RRRR-MM-DD')", time_zone]
+          end
         else
           raise "Connection adapter not supported: #{adapter_name}"
         end
